@@ -2,18 +2,17 @@ library platform_action_sheet;
 
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /// Display a platform dependent Action Sheet
 class PlatformActionSheet {
   /// Function to display the sheet
-  void displaySheet(
-      {required BuildContext context,
-      Widget? title,
-      Widget? message,
-      required List<ActionSheetAction> actions}) {
+  void displaySheet({
+    required BuildContext context,
+    Widget? title,
+    Widget? message,
+    required List<ActionSheetAction> actions,
+  }) {
     if (Platform.isIOS) {
       _showCupertinoActionSheet(context, title, message, actions);
     } else {
@@ -23,7 +22,11 @@ class PlatformActionSheet {
 }
 
 void _showCupertinoActionSheet(
-    BuildContext context, title, message, List<ActionSheetAction> actions) {
+  BuildContext context,
+  title,
+  message,
+  List<ActionSheetAction> actions,
+) {
   final noCancelOption = -1;
   // Cancel action is treated differently with CupertinoActionSheets
   var indexOfCancel = actions.lastIndexWhere((action) => action.isCancel);
@@ -35,7 +38,8 @@ void _showCupertinoActionSheet(
           actions: actions
               .where((action) => !action.isCancel)
               .map<Widget>(_cupertinoActionSheetActionFromAction)
-              .toList())
+              .toList(),
+        )
       : CupertinoActionSheet(
           title: title,
           message: message,
@@ -43,13 +47,16 @@ void _showCupertinoActionSheet(
               .where((action) => !action.isCancel)
               .map<Widget>(_cupertinoActionSheetActionFromAction)
               .toList(),
-          cancelButton:
-              _cupertinoActionSheetActionFromAction(actions[indexOfCancel]));
+          cancelButton: _cupertinoActionSheetActionFromAction(
+            actions[indexOfCancel],
+          ),
+        );
   showCupertinoModalPopup(context: context, builder: (_) => actionSheet);
 }
 
 CupertinoActionSheetAction _cupertinoActionSheetActionFromAction(
-        ActionSheetAction action) =>
+  ActionSheetAction action,
+) =>
     CupertinoActionSheetAction(
       child: Text(action.text),
       onPressed: action.onPressed,
@@ -66,47 +73,54 @@ ListTile _listTileFromAction(ActionSheetAction action) => action.hasArrow
         title: Text(
           action.text,
           style: TextStyle(
-              fontWeight:
-                  action.defaultAction ? FontWeight.bold : FontWeight.normal),
+            fontWeight:
+                action.defaultAction ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
         onTap: action.onPressed,
       );
 
 void _settingModalBottomSheet(
-    context, title, message, List<ActionSheetAction> actions) {
+  context,
+  title,
+  message,
+  List<ActionSheetAction> actions,
+) {
   if (actions.isNotEmpty) {
     showModalBottomSheet(
-        context: context,
-        builder: (_) {
-          final _lastItem = 1, _secondLastItem = 2;
-          return Container(
+      context: context,
+      builder: (_) {
+        final _lastItem = 1, _secondLastItem = 2;
+        return SafeArea(
+          top: false,
+          child: Container(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: title,
-                ),
+                Padding(padding: const EdgeInsets.only(left: 20), child: title),
                 Padding(
                   padding: const EdgeInsets.only(left: 20),
                   child: message,
                 ),
                 ListView.separated(
-                    padding: const EdgeInsets.only(left: 20),
-                    shrinkWrap: true,
-                    itemCount: actions.length,
-                    itemBuilder: (_, index) =>
-                        _listTileFromAction(actions[index]),
-                    separatorBuilder: (_, index) =>
-                        (index == (actions.length - _secondLastItem) &&
-                                actions[actions.length - _lastItem].isCancel)
-                            ? Divider()
-                            : Container()),
+                  padding: const EdgeInsets.only(left: 20),
+                  shrinkWrap: true,
+                  itemCount: actions.length,
+                  itemBuilder: (_, index) =>
+                      _listTileFromAction(actions[index]),
+                  separatorBuilder: (_, index) =>
+                      (index == (actions.length - _secondLastItem) &&
+                              actions[actions.length - _lastItem].isCancel)
+                          ? Divider()
+                          : Container(),
+                ),
               ],
             ), // Separator above the last option only
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 }
 
